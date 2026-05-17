@@ -24,37 +24,29 @@ def handle_client(conn, addr):
             parts = msg.split("|")
             cmd = parts[0]
 
-            # CREATE ACCOUNT
             if cmd == "CREATE":
                 name, surname, pesel, acc, pwd_hash = parts[1:]
-
                 ok = db.create_user(name, surname, pesel, acc, pwd_hash)
 
-                log(f"CREATE account={acc} success={ok}")
-
+                log(f"CREATE {acc} {ok}")
                 conn.send(("OK" if ok else "ERROR").encode())
 
-            # LOGIN
             elif cmd == "LOGIN":
                 acc, pwd_hash = parts[1:]
                 user = db.get_user_by_account(acc)
 
                 success = user and user[5] == pwd_hash
 
-                log(f"LOGIN account={acc} success={success}")
-
+                log(f"LOGIN {acc} {success}")
                 conn.send(("LOGIN_OK" if success else "LOGIN_FAIL").encode())
 
-            # BALANCE
             elif cmd == "BALANCE":
                 acc = parts[1]
                 bal = db.get_balance(acc)
 
-                log(f"BALANCE account={acc} value={bal}")
-
+                log(f"BALANCE {acc} {bal}")
                 conn.send(str(bal).encode())
 
-            # TRANSFER
             elif cmd == "TRANSFER":
                 from_acc, to_acc, amount = parts[1:]
                 amount = float(amount)
@@ -62,12 +54,31 @@ def handle_client(conn, addr):
                 with lock:
                     result = db.transfer(from_acc, to_acc, amount)
 
-                log(f"TRANSFER from={from_acc} to={to_acc} amount={amount} result={result}")
+                log(f"TRANSFER {from_acc}->{to_acc} {amount} {result}")
+                conn.send(result.encode())
 
+            elif cmd == "DEPOSIT":
+                acc, amount = parts[1:]
+                amount = float(amount)
+
+                with lock:
+                    result = db.deposit(acc, amount)
+
+                log(f"DEPOSIT {acc} {amount} {result}")
+                conn.send(result.encode())
+
+            elif cmd == "WITHDRAW":
+                acc, amount = parts[1:]
+                amount = float(amount)
+
+                with lock:
+                    result = db.withdraw(acc, amount)
+
+                log(f"WITHDRAW {acc} {amount} {result}")
                 conn.send(result.encode())
 
         except Exception as e:
-            log(f"ERROR {addr}: {e}")
+            log(f"ERROR {addr} {e}")
             break
 
     conn.close()

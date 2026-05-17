@@ -7,16 +7,16 @@ PORT = 5555
 logged_in = None
 
 
-def hash_password(password):
-    return hashlib.sha256(password.encode()).hexdigest()
+def hash_password(p):
+    return hashlib.sha256(p.encode()).hexdigest()
 
 
 def send(msg):
-    client = socket.socket()
-    client.connect((HOST, PORT))
-    client.send(msg.encode())
-    res = client.recv(4096).decode()
-    client.close()
+    c = socket.socket()
+    c.connect((HOST, PORT))
+    c.send(msg.encode())
+    res = c.recv(4096).decode()
+    c.close()
     return res
 
 
@@ -26,29 +26,31 @@ def menu():
     print("2. Login")
     print("3. Balance")
     print("4. Transfer")
-    print("5. Exit")
+    print("5. Deposit")
+    print("6. Withdraw")
+    print("7. Exit")
 
 
-def create_account():
-    name = input("Name: ")
-    surname = input("Surname: ")
-    pesel = input("PESEL: ")
-    acc = input("Account number: ")
-    password = hash_password(input("Password: "))
+def create():
+    n = input("Name: ")
+    s = input("Surname: ")
+    p = input("PESEL: ")
+    a = input("Account: ")
+    pw = hash_password(input("Password: "))
 
-    print(send(f"CREATE|{name}|{surname}|{pesel}|{acc}|{password}"))
+    print(send(f"CREATE|{n}|{s}|{p}|{a}|{pw}"))
 
 
 def login():
     global logged_in
 
-    acc = input("Account number: ")
-    password = hash_password(input("Password: "))
+    a = input("Account: ")
+    pw = hash_password(input("Password: "))
 
-    res = send(f"LOGIN|{acc}|{password}")
+    res = send(f"LOGIN|{a}|{pw}")
 
     if res == "LOGIN_OK":
-        logged_in = acc
+        logged_in = a
         print("LOGIN OK")
     else:
         print("LOGIN FAIL")
@@ -67,23 +69,47 @@ def transfer():
         print("LOGIN REQUIRED")
         return
 
-    to_acc = input("To account: ")
+    to = input("To account: ")
     amount = input("Amount: ")
 
-    print(send(f"TRANSFER|{logged_in}|{to_acc}|{amount}"))
+    print(send(f"TRANSFER|{logged_in}|{to}|{amount}"))
+
+
+def deposit():
+    if not logged_in:
+        print("LOGIN REQUIRED")
+        return
+
+    amount = input("Amount: ")
+    print(send(f"DEPOSIT|{logged_in}|{amount}"))
+
+
+def withdraw():
+    if not logged_in:
+        print("LOGIN REQUIRED")
+        return
+
+    amount = input("Amount: ")
+    print(send(f"WITHDRAW|{logged_in}|{amount}"))
 
 
 while True:
     menu()
-    choice = input("> ")
+    c = input("> ")
 
-    if choice == "1":
-        create_account()
-    elif choice == "2":
+    if c == "1":
+        create()
+    elif c == "2":
         login()
-    elif choice == "3":
+    elif c == "3":
         balance()
-    elif choice == "4":
+    elif c == "4":
         transfer()
-    elif choice == "5":
+    elif c == "5":
+        deposit()
+    elif c == "6":
+        withdraw()
+    elif c == "7":
         break
+    else:
+        print("INVALID COMMAND")
