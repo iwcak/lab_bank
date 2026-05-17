@@ -15,52 +15,74 @@ class Database:
         self.cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            surname TEXT NOT NULL,
-            pesel TEXT UNIQUE NOT NULL,
-            account_number TEXT UNIQUE NOT NULL,
-            password_hash TEXT NOT NULL,
+            name TEXT,
+            surname TEXT,
+            pesel TEXT UNIQUE,
+            account_number TEXT UNIQUE,
+            password_hash TEXT,
             balance REAL DEFAULT 0
         )
         """)
         self.conn.commit()
 
-    def create_user(self, name, surname, pesel, account_number, password_hash):
+    # CREATE USER
+    def create_user(self, name, surname, pesel, acc, pwd_hash):
         try:
             self.cursor.execute("""
             INSERT INTO users (name, surname, pesel, account_number, password_hash, balance)
-            VALUES (?, ?, ?, ?, ?, ?)
-            """, (name, surname, pesel, account_number, password_hash, 0))
+            VALUES (?, ?, ?, ?, ?, 0)
+            """, (name, surname, pesel, acc, pwd_hash))
             self.conn.commit()
             return True
         except sqlite3.IntegrityError:
             return False
 
-    def get_user_by_account(self, account_number):
-        self.cursor.execute("""
-        SELECT * FROM users WHERE account_number = ?
-        """, (account_number,))
+    # GET USER
+    def get_user_by_account(self, acc):
+        self.cursor.execute(
+            "SELECT * FROM users WHERE account_number = ?",
+            (acc,)
+        )
         return self.cursor.fetchone()
 
-    def get_user_by_pesel(self, pesel):
-        self.cursor.execute("""
-        SELECT * FROM users WHERE pesel = ?
-        """, (pesel,))
-        return self.cursor.fetchone()
+    # GET BALANCE
+    def get_balance(self, acc):
+        self.cursor.execute(
+            "SELECT balance FROM users WHERE account_number = ?",
+            (acc,)
+        )
+        res = self.cursor.fetchone()
+        return res[0] if res else None
 
-    def update_balance(self, account_number, new_balance):
-        self.cursor.execute("""
-        UPDATE users SET balance = ?
-        WHERE account_number = ?
-        """, (new_balance, account_number))
+    # TRANSFER
+    def transfer(self, from_acc, to_acc, amount):
+        self.cursor.execute(
+            "SELECT balance FROM users WHERE account_number = ?",
+            (from_acc,)
+        )
+        sender = self.cursor.fetchone()
+
+        self.cursor.execute(
+            "SELECT balance FROM users WHERE account_number = ?",
+            (to_acc,)
+        )
+        receiver = self.cursor.fetchone()
+
+        if not sender or not receiver:
+            return "ERROR: ACCOUNT NOT FOUND"
+
+        if sender[0] < amount:
+            return "ERROR: NOT ENOUGH MONEY"
+
+        self.cursor.execute(
+            "UPDATE users SET balance = ? WHERE account_number = ?",
+            (sender[0] - amount, from_acc)
+        )
+
+        self.cursor.execute(
+            "UPDATE users SET balance = ? WHERE account_number = ?",
+            (receiver[0] + amount, to_acc)
+        )
+
         self.conn.commit()
-
-    def get_balance(self, account_number):
-        self.cursor.execute("""
-        SELECT balance FROM users WHERE account_number = ?
-        """, (account_number,))
-        result = self.cursor.fetchone()
-        return result[0] if result else None
-
-    def close(self):
-        self.conn.close()
+        return "TRANSFER SUCCESS"

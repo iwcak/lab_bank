@@ -4,7 +4,7 @@ import hashlib
 HOST = "127.0.0.1"
 PORT = 5555
 
-logged_in_account = None
+logged_in = None
 
 
 def hash_password(password):
@@ -12,22 +12,21 @@ def hash_password(password):
 
 
 def send(msg):
-    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client = socket.socket()
     client.connect((HOST, PORT))
-
     client.send(msg.encode())
-    response = client.recv(4096).decode()
-
+    res = client.recv(4096).decode()
     client.close()
-    return response
+    return res
 
 
 def menu():
-    print("\n BANK SYSTEM")
+    print("\nBANK SYSTEM")
     print("1. Create account")
     print("2. Login")
-    print("3. Check balance")
-    print("4. Exit")
+    print("3. Balance")
+    print("4. Transfer")
+    print("5. Exit")
 
 
 def create_account():
@@ -35,57 +34,56 @@ def create_account():
     surname = input("Surname: ")
     pesel = input("PESEL: ")
     acc = input("Account number: ")
+    password = hash_password(input("Password: "))
 
-    password = input("Password: ")
-    pwd_hash = hash_password(password)
-
-    msg = f"CREATE|{name}|{surname}|{pesel}|{acc}|{pwd_hash}"
-    print(send(msg))
+    print(send(f"CREATE|{name}|{surname}|{pesel}|{acc}|{password}"))
 
 
 def login():
-    global logged_in_account
+    global logged_in
 
     acc = input("Account number: ")
-    password = input("Password: ")
+    password = hash_password(input("Password: "))
 
-    pwd_hash = hash_password(password)
+    res = send(f"LOGIN|{acc}|{password}")
 
-    msg = f"LOGIN|{acc}|{pwd_hash}"
-    response = send(msg)
-
-    if response == "LOGIN_OK":
-        logged_in_account = acc
-        print("Login successful")
+    if res == "LOGIN_OK":
+        logged_in = acc
+        print("LOGIN OK")
     else:
-        print("Login failed")
+        print("LOGIN FAIL")
 
 
-def check_balance():
-    if not logged_in_account:
-        print("You must login first")
+def balance():
+    if not logged_in:
+        print("LOGIN REQUIRED")
         return
 
-    msg = f"BALANCE|{logged_in_account}"
-    print(send(msg))
+    print(send(f"BALANCE|{logged_in}"))
+
+
+def transfer():
+    if not logged_in:
+        print("LOGIN REQUIRED")
+        return
+
+    to_acc = input("To account: ")
+    amount = input("Amount: ")
+
+    print(send(f"TRANSFER|{logged_in}|{to_acc}|{amount}"))
 
 
 while True:
     menu()
-    choice = input("Choose option: ")
+    choice = input("> ")
 
     if choice == "1":
         create_account()
-
     elif choice == "2":
         login()
-
     elif choice == "3":
-        check_balance()
-
+        balance()
     elif choice == "4":
-        print("Bye 🏦")
+        transfer()
+    elif choice == "5":
         break
-
-    else:
-        print("Invalid option")
