@@ -4,6 +4,9 @@ import hashlib
 HOST = "127.0.0.1"
 PORT = 5555
 
+sock = socket.socket()
+sock.connect((HOST, PORT))
+
 logged_in = None
 
 
@@ -12,11 +15,12 @@ def hash_password(p):
 
 
 def send(msg):
-    c = socket.socket()
-    c.connect((HOST, PORT))
-    c.send(msg.encode())
-    res = c.recv(4096).decode()
-    c.close()
+    sock.send((msg + "\n").encode())
+    res = sock.recv(4096).decode().strip()
+
+    if res == "WELCOME":
+        res = sock.recv(4096).decode().strip()
+
     return res
 
 
@@ -60,7 +64,6 @@ def balance():
     if not logged_in:
         print("LOGIN REQUIRED")
         return
-
     print(send(f"BALANCE|{logged_in}"))
 
 
@@ -71,7 +74,6 @@ def transfer():
 
     to = input("To account: ")
     amount = input("Amount: ")
-
     print(send(f"TRANSFER|{logged_in}|{to}|{amount}"))
 
 
@@ -111,5 +113,5 @@ while True:
         withdraw()
     elif c == "7":
         break
-    else:
-        print("INVALID COMMAND")
+
+sock.close()

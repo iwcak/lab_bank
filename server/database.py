@@ -33,7 +33,7 @@ class Database:
             """, (name, surname, pesel, acc, pwd_hash))
             self.conn.commit()
             return True
-        except sqlite3.IntegrityError:
+        except:
             return False
 
     def get_user_by_account(self, acc):
@@ -53,10 +53,10 @@ class Database:
         receiver = self.cursor.fetchone()
 
         if not sender or not receiver:
-            return "ERROR: ACCOUNT NOT FOUND"
+            return "ERROR"
 
         if sender[0] < amount:
-            return "ERROR: NOT ENOUGH MONEY"
+            return "ERROR"
 
         self.cursor.execute("UPDATE users SET balance = ? WHERE account_number = ?",
                             (sender[0] - amount, from_acc))
@@ -65,37 +65,33 @@ class Database:
                             (receiver[0] + amount, to_acc))
 
         self.conn.commit()
-        return "TRANSFER SUCCESS"
+        return "OK"
 
     def deposit(self, acc, amount):
         self.cursor.execute("SELECT balance FROM users WHERE account_number = ?", (acc,))
         user = self.cursor.fetchone()
 
         if not user:
-            return "ERROR: ACCOUNT NOT FOUND"
-
-        new_balance = user[0] + amount
+            return "ERROR"
 
         self.cursor.execute("UPDATE users SET balance = ? WHERE account_number = ?",
-                            (new_balance, acc))
-        self.conn.commit()
+                            (user[0] + amount, acc))
 
-        return "DEPOSIT SUCCESS"
+        self.conn.commit()
+        return "OK"
 
     def withdraw(self, acc, amount):
         self.cursor.execute("SELECT balance FROM users WHERE account_number = ?", (acc,))
         user = self.cursor.fetchone()
 
         if not user:
-            return "ERROR: ACCOUNT NOT FOUND"
+            return "ERROR"
 
         if user[0] < amount:
-            return "ERROR: NOT ENOUGH MONEY"
-
-        new_balance = user[0] - amount
+            return "ERROR"
 
         self.cursor.execute("UPDATE users SET balance = ? WHERE account_number = ?",
-                            (new_balance, acc))
-        self.conn.commit()
+                            (user[0] - amount, acc))
 
-        return "WITHDRAW SUCCESS"
+        self.conn.commit()
+        return "OK"
