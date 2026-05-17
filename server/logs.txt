@@ -1,0 +1,25 @@
+[2026-05-17 21:59:38] LOGIN | ACC1 success=True
+[2026-05-17 21:59:55] CREATE | ACC1 success=False
+[2026-05-17 22:00:06] LOGIN | ACC1 success=True
+[2026-05-17 22:01:41] CREATE | ACC1 success=True
+[2026-05-17 22:01:45] LOGIN | ACC1 success=True
+[2026-05-17 22:02:00] LOGIN | ACC1 success=True
+[2026-05-17 22:06:14] LOGIN | ACC2 success=False
+[2026-05-17 22:06:31] LOGIN | ACC1 success=True
+[2026-05-17 22:06:39] LOGIN | ACC2 success=False
+[2026-05-17 22:06:47] LOGIN | ACC1 success=True
+[2026-05-17 22:06:54] BALANCE | ACC2 balance=None
+[2026-05-17 22:07:02] BALANCE | ACC2 balance=None
+[2026-05-17 22:07:08] DEPOSIT | ACC2 amount=2.0 result=ERROR
+[2026-05-17 22:07:10] BALANCE | ACC2 balance=None
+[2026-05-17 22:07:13] BALANCE | ACC2 balance=None
+[2026-05-17 22:07:14] BALANCE | ACC2 balance=None
+[2026-05-17 22:07:14] BALANCE | ACC2 balance=None
+[2026-05-17 22:07:15] BALANCE | ACC2 balance=None
+[2026-05-17 22:07:15] BALANCE | ACC2 balance=None
+[2026-05-17 22:07:19] LOGIN | ACC2 success=False
+[2026-05-17 22:07:26] LOGIN | ACC1 success=True
+[2026-05-17 22:07:32] LOGIN | ACC1 success=True
+[2026-05-17 22:07:37] DEPOSIT | ACC1 amount=3.0 result=OK
+[2026-05-17 22:07:41] BALANCE | ACC1 balance=3.0
+[2026-05-17 22:07:48] WITHDRAW | ACC1 amount=1.0 result=OK
